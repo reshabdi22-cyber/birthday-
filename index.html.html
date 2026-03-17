@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SYSTEM_OVERRIDE_LUV</title>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+    body, html { margin: 0; padding: 0; height: 100%; background: #0a0000; color: #ff85a2; font-family: 'Courier New', Courier, monospace; overflow: hidden; display: flex; align-items: center; justify-content: center; transition: background 1.5s ease; touch-action: none; }
+    canvas#bgCanvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
+    .glitch-wrapper { position: relative; z-index: 10; background: rgba(20, 0, 5, 0.95); border: 2px solid #ff85a2; padding: 25px 15px; text-align: center; box-shadow: 0 0 30px rgba(255, 133, 162, 0.3); border-radius: 25px; max-width: 400px; width: 85%; animation: float 4s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+    h1 { font-size: 1.4rem; letter-spacing: 1px; margin: 0; color: #fff; text-shadow: 0 0 10px #ff85a2; }
+    .sub-text { color: #ffb3c1; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-size: 0.6rem; }
+    #running-commentary { color: #fff; font-weight: bold; min-height: 25px; margin-bottom: 15px; font-size: 1rem; text-shadow: 0 0 8px #ff4d4d; }
+    .btn-box { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; height: 60px; position: relative; }
+    .cyber-btn { padding: 12px 25px; font-size: 1rem; cursor: pointer; border: 2px solid #ff85a2; background: transparent; color: #ff85a2; font-family: inherit; font-weight: bold; border-radius: 50px; transition: 0.2s ease-out; outline: none; }
+    .btn-yes { z-index: 11; background: rgba(255, 133, 162, 0.1); }
+    .btn-no { position: absolute; z-index: 1000; white-space: nowrap; }
+    #final-stage, #stats-stage { display: none; }
+    .cat-grid { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
+    .cat-frame { width: 120px; height: 120px; border: 3px solid #fff; border-radius: 15px; object-fit: cover; background: #222; }
+    .song-box { background: rgba(255, 255, 255, 0.05); border: 1px dashed #ff85a2; padding: 10px; margin: 15px 0; font-size: 0.8rem; color: #fff; line-height: 1.4; }
+    .lyrics-highlight { color: #ff85a2; font-weight: bold; animation: pulse 1s infinite; }
+    .btn-blue { border-color: #70d6ff; color: #70d6ff; margin-top: 15px; width: 100%; }
+    .blue-ui { border-color: #70d6ff !important; box-shadow: 0 0 40px rgba(112, 214, 255, 0.3) !important; background: rgba(0, 10, 20, 0.95) !important; }
+    .stats-text { font-size: 1rem; color: #70d6ff; margin: 5px 0; font-weight: bold; line-height: 1.4; }
+    .connection-box { border-top: 1px solid #70d6ff; margin-top: 15px; padding-top: 10px; }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<div id="box" class="glitch-wrapper">
+    <h1>HELLOOO MY LOVEEEE</h1>
+    <p class="sub-text">Heartbeat: Racing ❤️</p>
+    <p style="color: #fff; margin-bottom: 5px; font-size: 0.85rem;">Are you the best thing that ever happened to me?</p>
+    <div id="running-commentary">Waiting for you...</div>
+    <div class="btn-box">
+        <button class="btn-yes cyber-btn" onclick="celebrate()">YES</button>
+        <button id="noBtn" class="cyber-btn btn-no">NO</button>
+    </div>
+</div>
+
+<div id="final-stage" class="glitch-wrapper">
+    <h1>GRATTIS PÅ FÖDELSEDAGEN!</h1>
+    <p style="color: #fff; font-size: 0.9rem; margin: 10px 0;">Damn sweetie ur <span id="dynamic-age"></span> nowww!</p>
+    
+    <div class="cat-grid">
+        <img src="https://i.postimg.cc/gJcRy7Jq/1-jpg.jpg" class="cat-frame">
+        <img src="https://i.postimg.cc/mkHYX5xW/2-jpg.jpg" class="cat-frame">
+    </div>
+
+    <div class="song-box">
+        <p style="color: #fff; font-size: 0.8rem; margin-bottom: 10px;">
+            "Jag önskar dig all lycka och allt gott du kan tänka dig, raring. Jag älskar dig innerligt!"
+        </p>
+        <p class="lyrics-highlight">I love you dearly too! ❤️</p>
+    </div>
+    
+    <button class="cyber-btn btn-blue" onclick="showStats()">ONE MORE THING</button>
+</div>
+
+<div id="stats-stage" class="glitch-wrapper blue-ui">
+    <h1 style="color: #70d6ff;">TIME ANALYSIS</h1>
+    <p class="sub-text" style="color: #fff;">Time since you were born:</p>
+    <div id="timer-display" class="stats-text"></div>
+    <div class="connection-box">
+        <p class="sub-text" style="color: #fff;">Time since I knew you existed:</p>
+        <div id="connection-timer" class="stats-text" style="color: #ff85a2;"></div>
+    </div>
+    <div style="color: #fff; text-shadow: 0 0 8px #70d6ff; font-size: 0.9rem; margin-top: 15px;">
+        Jag älskar dig. 🩵
+    </div>
+</div>
+
+<script>
+const BIRTH_DATE = new Date(2008, 3, 24); 
+const MET_DATE = new Date(2025, 10, 17); 
+
+// Background Logic
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let w, h, particles = [];
+let pColor = "rgba(255, 182, 193, 0.6)";
+
+function init() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+    particles = Array.from({length: 40}, () => ({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 3 + 1, h: Math.random() > 0.7 }));
+}
+function draw() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => {
+        ctx.fillStyle = pColor;
+        if(p.h) { ctx.font = "14px serif"; ctx.fillText("❤️", p.x, p.y); }
+        else { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); }
+        p.y += 0.8; if(p.y > h) p.y = -10;
+    });
+    requestAnimationFrame(draw);
+}
+window.onresize = init; init(); draw();
+
+// THE CHASING NO BUTTON
+const noBtn = document.getElementById('noBtn');
+const commentary = document.getElementById('running-commentary');
+const teaseMsgs = [
+    "NOOO SWEETIE SAY YESS", 
+    "Wrong button! 😘", 
+    "I'm too fast for you!", 
+    "Click YES already!!", 
+    "Try again, baby!",
+    "Nope! ❤️"
+];
+
+function moveNo() {
+    // Tease text
+    noBtn.innerText = "NOOO SWEETIE SAY YESS";
+    commentary.innerText = teaseMsgs[Math.floor(Math.random() * teaseMsgs.length)];
+    
+    // Teleport
+    const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+    const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+    
+    const newX = Math.random() * maxX;
+    const newY = Math.random() * maxY;
+    
+    noBtn.style.left = newX + 'px';
+    noBtn.style.top = newY + 'px';
+}
+
+noBtn.addEventListener('mouseover', moveNo);
+noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveNo(); });
+
+function celebrate() {
+    const now = new Date();
+    let age = now.getFullYear() - BIRTH_DATE.getFullYear();
+    if (now.getMonth() < 3 || (now.getMonth() === 3 && now.getDate() < 24)) age--;
+    document.getElementById('dynamic-age').innerText = age;
+
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff85a2', '#ffffff', '#ffb3c1'] });
+    document.getElementById('box').style.display = 'none';
+    noBtn.style.display = 'none';
+    document.getElementById('final-stage').style.display = 'block';
+}
+
+function showStats() {
+    pColor = "rgba(112, 214, 255, 0.6)";
+    document.body.style.background = "#000a14";
+    document.getElementById('final-stage').style.display = 'none';
+    document.getElementById('stats-stage').style.display = 'block';
+    
+    const updateTimes = () => {
+        const now = new Date();
+        const diffB = now - BIRTH_DATE;
+        const bD = Math.floor(diffB / 86400000);
+        const bH = Math.floor((diffB / 3600000) % 24);
+        const bM = Math.floor((diffB / 60000) % 60);
+        const bS = Math.floor((diffB / 1000) % 60);
+        document.getElementById('timer-display').innerHTML = `${bD.toLocaleString()} DAYS<br>${bH}H : ${bM}M : ${bS}S`;
+
+        const diffM = now - MET_DATE;
+        const mTotalDays = Math.floor(diffM / 86400000);
+        const mMonths = Math.floor(mTotalDays / 30.44);
+        const mDays = Math.floor(mTotalDays % 30.44);
+        const mH = Math.floor((diffM / 3600000) % 24);
+        const mS = Math.floor((diffM / 1000) % 60);
+        document.getElementById('connection-timer').innerHTML = `${mMonths} MONTHS<br>${mDays} DAYS : ${mH}H : ${mS}S`;
+    };
+    updateTimes();
+    setInterval(updateTimes, 1000);
+}
+</script>
+</body>
+</html>
